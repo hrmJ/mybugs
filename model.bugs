@@ -5,14 +5,16 @@ model{
 
        for (i in 1:2) {                                                                    # LANG
                 for (j in 1:nMorph) {                                                      # MORPH
-                         observations[i,j,] ~ dmulti( probs[i,j,1:Nlocations] , totals[i,j]  )
+                    for (ref.idx in 1:nRef) {                                                      # MORPH
+                         observations[i,j,ref.idx,1:Nlocations] ~ dmulti( probs[i,j,ref.idx,1:Nlocations] , totals[i,j,ref.idx]  )
                          for (k in 1:Nlocations) {                                         #y. LOCATIONS
-                           probs[i,j,k]  <- phi[i,j,k] / sum(phi[i,j,1:Nlocations])
-                           log(phi[i,j,k]) <- location[k] + lang[i,k]  +  morph[j,k]  + morph.lang[i,j,k] 
+                           probs[i,j,ref.idx,k]  <- phi[i,j,ref.idx,k] / sum(phi[i,j,ref.idx,1:Nlocations])
+                           log(phi[i,j,ref.idx,k]) <- location[k] + lang[i,k]  +  morph[j,k]  + morph.lang[i,j,k] + b.ref[ref.idx,k]
                          }#location
-            } #morph
+            } 
 
-          }#lang
+          }
+       }
 
 
        # PRIORIT + interaktiot
@@ -29,9 +31,6 @@ model{
 
            location[1:4] ~ ddirich(alpha[])
 
-           for(lang.idx in 1:nLang){
-               langlocs[lang.idx,1:4] ~ ddirich(alpha[])
-           }
 
        # Lang
        #------------------------------------------------------------------
@@ -50,11 +49,10 @@ model{
            }
 
 
-       for(loc.idx in 1:Nlocations){
-           for(lang.idx in 1:nLang){
-               a.lang[lang.idx, loc.idx] ~ dnorm(0, tau.lang)
+           for(ref.idx in 1:nRef){
+               ref[ref.idx, 1:Nlocations] ~ ddirich(alpha[])
            }
-       }
+
 
        # morph
        #------------------------------------------------------------------
@@ -91,9 +89,13 @@ model{
 
        for(loc.idx in 1:Nlocations){
            #BASELINE = location[loc.idx]
-           for (lang.idx in 1:nLang) { lang.means[lang.idx,loc.idx] <- location[loc.idx] + a.lang[lang.idx,loc.idx] } # cell means 
-           lang.b0[loc.idx] <- mean(lang.means[1:nLang,loc.idx])
-           for (lang.idx in 1:nLang) { b.lang[lang.idx,loc.idx] <- lang.means[lang.idx, loc.idx] - lang.b0[loc.idx] } # cell means 
+           for (lang.idx in 1:nLang) { for(morph.idx in 1:nMorph){ for (ref.idx in 1:nRef){
+               m[lang.idx,morph.idx,ref.idx,loc.idx]  <- location[loc.idx] + lang[lang.idx,loc.idx]  +  morph[morph.idx,loc.idx]  + morph.lang[lang.idx,morph.idx,loc.idx] + ref[ref.idx,loc.idx]
+            }}}
+           b0[loc.idx] <- mean(m[1:nLang,1:nMorph,1:nRef,loc.idx])
+           for(ref.idx in 1:nRef){
+               b.ref[ref.idx, loc.idx] <- mean(m[1:nLang,1:nMorph,ref.idx,loc.idx]) - b0[loc.idx]
+           }
        }
 }
 
