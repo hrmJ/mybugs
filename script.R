@@ -5,7 +5,7 @@ library(coda)
 library(mcmcplots)
 
 if(!exists("aineisto")){
-    aineisto <- readRDS("koko_aineisto.rds")
+    aineisto <- readRDS("../koko_aineisto.rds")
 }
 
 
@@ -23,7 +23,7 @@ dataList  <-  list(observations=observations,
 
 monitor <- c("morph.lang")
 
-jagsModel <- jags.model("model_odell.bugs", data=dataList, n.chains = 1, n.adapt = 500)
+jagsModel <- jags.model("model.bugs", data=dataList, n.chains = 1, n.adapt = 500)
 update(jagsModel, n.iter=500)
 post <- coda.samples(jagsModel, variable.names=monitor, n.iter=1000, thin=1) 
 show(summary(post)$statistics)
