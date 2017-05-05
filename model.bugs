@@ -1,0 +1,99 @@
+model{
+
+       # LIKELIHOOD
+       #==================================================================
+
+       for (i in 1:2) {                                                                    # LANG
+                for (j in 1:nMorph) {                                                      # MORPH
+                         observations[i,j,] ~ dmulti( probs[i,j,1:Nlocations] , totals[i,j]  )
+                         for (k in 1:Nlocations) {                                         #y. LOCATIONS
+                           probs[i,j,k]  <- phi[i,j,k] / sum(phi[i,j,1:Nlocations])
+                           log(phi[i,j,k]) <- location[k] + lang[i,k]  +  morph[j,k]  + morph.lang[i,j,k] 
+                         }#location
+            } #morph
+
+          }#lang
+
+
+       # PRIORIT + interaktiot
+       #==================================================================
+
+       # Location
+       #------------------------------------------------------------------
+
+
+           for(k in 1:Nlocations){
+               #location[k]  ~ dnorm(0, tau.loc) 
+               alpha[k] <- 1
+           }
+
+           location[1:4] ~ ddirich(alpha[])
+
+           for(lang.idx in 1:nLang){
+               langlocs[lang.idx,1:4] ~ ddirich(alpha[])
+           }
+
+       # Lang
+       #------------------------------------------------------------------
+
+           sigma.loc ~ dt(0,1,1) T(0,) #puoli-cauchy |-----------
+           tau.loc  <- pow(sigma.loc,-2)
+           sigma.lang ~ dt(0,1,1) T(0,) #puoli-cauchy |-----------
+           tau.lang  <- pow(sigma.lang,-2)
+
+           for(k in 1:Nlocations){
+#               for(j in 1:2){
+                   lang.raw[k] ~ dnorm(0, tau.lang)
+                   lang[1, k] <- lang.raw[k] - mean(lang.raw[])
+                   lang[2, k] <- -lang[1,k]
+#               }
+           }
+
+
+       for(loc.idx in 1:Nlocations){
+           for(lang.idx in 1:nLang){
+               a.lang[lang.idx, loc.idx] ~ dnorm(0, tau.lang)
+           }
+       }
+
+       # morph
+       #------------------------------------------------------------------
+
+           sigma.morph ~ dt(0,1,1) T(0,) #puoli-cauchy |-----------
+           tau.morph  <- pow(sigma.morph,-2)
+           sigma.morph.lang ~ dt(0,1,1) T(0,) #puoli-cauchy |-----------
+           tau.morph.lang  <- pow(sigma.morph.lang,-2)
+
+           for(k in 1:Nlocations){
+# vain 2!       for(j in 1:nMorph){
+                   morph.raw[k] ~ dnorm(0, tau.morph)
+                   morph[1,k] <- morph.raw[k] - mean(morph.raw[])
+                   morph[2,k] <- -morph[1,k]
+
+                   #interaktio
+                   morph.lang.raw[k] ~  dnorm(0, tau.morph.lang)
+                   morph.lang[1,1,k] <- morph.lang.raw[k] - mean(morph.lang.raw[])
+                   morph.lang[1,2,k] <- -morph.lang[1,1,k]
+                   morph.lang[2,1,k] <- -morph.lang[1,1,k]
+                   morph.lang[2,2,k] <- morph.lang[1,1,k]
+#               }
+           }
+
+           std[1] <- sd(location[])
+           std[2] <- sd(lang[,])
+           std[3] <- sd(morph[,])
+           std[4] <- sd(morph.lang[,,])
+           
+           for (k in 1:Nlocations) {                                         #y. LOCATIONS
+              gt0[k] <- step(morph.lang[1,1,k])
+           }
+
+
+       for(loc.idx in 1:Nlocations){
+           #BASELINE = location[loc.idx]
+           for (lang.idx in 1:nLang) { lang.means[lang.idx,loc.idx] <- location[loc.idx] + a.lang[lang.idx,loc.idx] } # cell means 
+           lang.b0[loc.idx] <- mean(lang.means[1:nLang,loc.idx])
+           for (lang.idx in 1:nLang) { b.lang[lang.idx,loc.idx] <- lang.means[lang.idx, loc.idx] - lang.b0[loc.idx] } # cell means 
+       }
+}
+
