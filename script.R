@@ -24,9 +24,9 @@ dataList  <-  list(observations=observations,
 
 monitor <- c("b.lang.ref")
 
-jagsModel <- jags.model("model.bugs", data=dataList, n.chains = 1, n.adapt = 4000)
-update(jagsModel, n.iter=5000)
-post <- coda.samples(jagsModel, variable.names=monitor, n.iter=4000, thin=1) 
+jagsModel <- jags.model("model.bugs", data=dataList, n.chains = 2, n.adapt = 10000)
+update(jagsModel, n.iter=15000)
+post <- coda.samples(jagsModel, variable.names=monitor, n.iter=15000, thin=1) 
 show(summary(post)$statistics)
-#mcmcplot(post)
+mcmcplot(post)
 #pannaan talteen probsit, niin saadaan 3-ulotteinen taulukko todennäköisyydet

@@ -84,17 +84,19 @@ model{
                m[lang.idx,morph.idx,ref.idx,loc.idx]  <- location[loc.idx] + lang[lang.idx,loc.idx]  +  morph[morph.idx,loc.idx]  +   ref[ref.idx,loc.idx] + lang.ref[lang.idx,ref.idx,loc.idx] + lang.morph[lang.idx,morph.idx,loc.idx]
             }}}
 
-           #Voiko noin tehdä?? >>
+           #Voiko näin tehdä?? >>
            for (lang.idx in 1:nLang) { for (ref.idx in 1:nRef){
                mref[lang.idx,ref.idx,loc.idx]  <- location[loc.idx] + lang[lang.idx, loc.idx]  +  ref[ref.idx, loc.idx] + lang.ref[lang.idx,ref.idx,loc.idx]
             }}
 
            b0[loc.idx] <- mean(m[1:nLang,1:nMorph,1:nRef,loc.idx])
+           #Pitääkö erikseen mys 
+           refb0[loc.idx] <- mean(mref[1:nLang,1:nRef,loc.idx])
 
            for(ref.idx in 1:nRef){
-               b.ref[ref.idx, loc.idx] <- mean(mref[1:nLang,ref.idx,loc.idx]) - b0[loc.idx]
+               b.ref[ref.idx, loc.idx] <- mean(mref[1:nLang,ref.idx,loc.idx]) - refb0[loc.idx]
                for(lang.idx in 1:nLang){
-                   b.lang.ref[lang.idx, ref.idx, loc.idx] <- mref[lang.idx, ref.idx, loc.idx] - (b0[loc.idx] + lang[lang.idx, loc.idx] + b.ref[ref.idx, loc.idx])
+                   b.lang.ref[lang.idx, ref.idx, loc.idx] <- mref[lang.idx, ref.idx, loc.idx] - (refb0[loc.idx] + lang[lang.idx, loc.idx] + b.ref[ref.idx, loc.idx])
                }
            }
 
