@@ -22,10 +22,10 @@ dataList  <-  list(observations=observations,
                    nRef=length(unique(aineisto$ref)),
                    Nlocations = 4)
 
-monitor <- c("b.ref")
+monitor <- c("b.lang.ref")
 
 jagsModel <- jags.model("model.bugs", data=dataList, n.chains = 1, n.adapt = 4000)
-update(jagsModel, n.iter=4000)
+update(jagsModel, n.iter=5000)
 post <- coda.samples(jagsModel, variable.names=monitor, n.iter=4000, thin=1) 
 show(summary(post)$statistics)
 #mcmcplot(post)
