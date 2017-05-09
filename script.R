@@ -25,12 +25,15 @@ dataList  <-  list(observations=observations,
                    nFunct=length(unique(aineisto$funct)),
                    Nlocations = 4)
 
-monitor <- c("funct")
+monitor <- c("b.funct","b.ref","morph","lang.morph","b.lang.ref","b.lang.funct",
+             "std.lang"," std.morph"," std.funct"," std.ref"," std.lang.morph"," std.lang.ref"," std.lang.funct")
 
 
-jagsModel <- jags.model("model.bugs", data=dataList, n.chains = 1, n.adapt = 500)
-update(jagsModel, n.iter=500)
-post <- coda.samples(jagsModel, variable.names=monitor, n.iter=1000, thin=1) 
+
+system.time(jagsModel <- jags.model("model.bugs", data=dataList, n.chains = 1, n.adapt = 50000))
+system.time(update(jagsModel, n.iter=1000))
+system.time(post <- coda.samples(jagsModel, variable.names=monitor, n.iter=5000, thin=1))
+
 show(summary(post)$statistics)
 #mcmcplot(post)
 #pannaan talteen probsit, niin saadaan 3-ulotteinen taulukko todennäköisyydet

@@ -70,14 +70,18 @@ model{
                    lang.morph[2,2,k] <- lang.morph[1,1,k]
            }
 
-           std[1] <- sd(location[])
-           std[2] <- sd(lang[,])
-           std[3] <- sd(morph[,])
-           std[4] <- sd(lang.morph[,,])
+           std.lang <- sd(lang[,])
+           std.morph <- sd(morph[,])
+           std.funct <- sd(b.funct[,])
+           std.ref <- sd(b.ref[,])
+           std.lang.morph <- sd(lang.morph[,,])
+           std.lang.ref <- sd(b.lang.ref[,,])
+           std.lang.funct <- sd(b.lang.funct[,,])
+
            
-           for (k in 1:Nlocations) {                                         #y. LOCATIONS
-              gt0[k] <- step(lang.morph[1,1,k])
-           }
+#           for (k in 1:Nlocations) {                                         #y. LOCATIONS
+#              gt0[k] <- step(lang.morph[1,1,k])
+#           }
 
 
 
