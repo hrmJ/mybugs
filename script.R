@@ -7,14 +7,14 @@ library(ggmcmc)
 source("functions.R")
 
 if(!exists("aineisto")){
-    aineisto <- readRDS("../koko_aineisto.rds")
+    aineisto <- readRDS("/home/juho_harme/phdmanuscript/monograph/data/dumps/vaihe1df.rds")
 }
 
 
 #Muita mahdollisia muuttujia: funct, clausestatus 
 
-observations=xtabs(~ lang + morph + ref + funct + location, data=aineisto)
-totals=xtabs(~ lang + morph + ref + funct, data=aineisto)
+observations=xtabs(~ lang + morph + ref + funct + clausestatus + subjtype + objtype + location, data=aineisto)
+totals=xtabs(~ lang + morph + ref + funct + clausestatus + subjtype + objtype, data=aineisto)
 
 
 dataList  <-  list(observations=observations,
@@ -23,18 +23,22 @@ dataList  <-  list(observations=observations,
                    nMorph=length(unique(aineisto$morph)),
                    nRef=length(unique(aineisto$ref)),
                    nFunct=length(unique(aineisto$funct)),
+                   nClausestatus=length(unique(aineisto$clausestatus)),
                    Nlocations = 4)
 
-monitor <- c("b.funct","b.ref","morph","lang.morph","b.lang.ref","b.lang.funct",
-             "std.lang"," std.morph"," std.funct"," std.ref"," std.lang.morph"," std.lang.ref"," std.lang.funct")
+monitor <- c("b.funct","b.ref","morph","lang.morph","b.lang.ref","b.lang.funct","b.clausestatus","subjtype","objtype",
+             "std.lang"," std.morph"," std.funct"," std.ref"," std.lang.morph"," std.lang.ref"," std.lang.funct",
+             "std.lang.clausestatus","std.lang.objtype","std.lang.subjtype")
 
 
 
-system.time(jagsModel <- jags.model("model.bugs", data=dataList, n.chains = 1, n.adapt = 50000))
-system.time(update(jagsModel, n.iter=1000))
-system.time(post <- coda.samples(jagsModel, variable.names=monitor, n.iter=5000, thin=1))
 
-show(summary(post)$statistics)
+time.adapt <- system.time(jagsModel <- jags.model("model.bugs", data=dataList, n.chains = 1, n.adapt = 200000))
+time.update <- system.time(update(jagsModel, n.iter=2000))
+time.sample <- system.time(post <- coda.samples(jagsModel, variable.names=monitor, n.iter=20000, thin=1))
+
+sum.saved <- summary(post)$statistics
+show(sum.saved)
 #mcmcplot(post)
 #pannaan talteen probsit, niin saadaan 3-ulotteinen taulukko todennäköisyydet
 
@@ -53,5 +57,7 @@ show(summary(post)$statistics)
 #
 #ggs_caterpillar(ggs(post, par_labels=intercepts),family="ADV") + aes(color=lang) + facet_wrap(~ loc)
 #ggs_caterpillar(ggs(post, par_labels=intercepts)) 
+
+#saveRDS(post,"../phdmanuscript/monograph/data/dumps/hierarchical_dirichlecht_morph-ref-funct.rds")
 
 
