@@ -34,11 +34,15 @@ monitor <- c("b.funct","b.ref","morph","lang.morph","b.lang.ref","b.lang.funct",
 
 
 time.adapt <- system.time(jagsModel <- jags.model("model.bugs", data=dataList, n.chains = 1, n.adapt = 200000))
-time.update <- system.time(update(jagsModel, n.iter=2000))
-time.sample <- system.time(post <- coda.samples(jagsModel, variable.names=monitor, n.iter=20000, thin=1))
+show(time.adapt)
 
-sum.saved <- summary(post)$statistics
-show(sum.saved)
+#time.update <- system.time(update(jagsModel, n.iter=2000))
+#show(time.update)
+#time.sample <- system.time(post <- coda.samples(jagsModel, variable.names=monitor, n.iter=20000, thin=1))
+#
+#sum.saved <- summary(post)$statistics
+#show(sum.saved)
+#show(time.update)
 #mcmcplot(post)
 #pannaan talteen probsit, niin saadaan 3-ulotteinen taulukko todennäköisyydet
 
@@ -58,6 +62,6 @@ show(sum.saved)
 #ggs_caterpillar(ggs(post, par_labels=intercepts),family="ADV") + aes(color=lang) + facet_wrap(~ loc)
 #ggs_caterpillar(ggs(post, par_labels=intercepts)) 
 
-#saveRDS(post,"../phdmanuscript/monograph/data/dumps/hierarchical_dirichlecht_morph-ref-funct.rds")
+#saveRDS(post,"../phdmanuscript/monograph/data/dumps/hierarchical_dirichlecht_morph-ref-funct-clausestatus-subjtype-objtype.rds")
 
 
