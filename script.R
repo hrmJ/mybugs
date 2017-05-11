@@ -27,27 +27,26 @@ dataList  <-  list(observations=observations,
                    nClausestatus=length(unique(aineisto$clausestatus)),
                    Nlocations = 4)
 
-monitor <- c("b.funct","b.ref","morph","lang.morph","b.lang.ref","b.lang.funct","b.clausestatus","subjtype","objtype",
+monitor <- c("b.funct","b.ref","morph","lang.morph","b.lang.ref","b.lang.funct","subjtype",
              "std.lang"," std.morph"," std.funct"," std.ref"," std.lang.morph"," std.lang.ref"," std.lang.funct",
-             "std.lang.clausestatus","std.lang.objtype","std.lang.subjtype")
+             "std.subjtype", "std.lang.subjtype")
 
 
-con <- file(paste("~/public_html/currentlog.txt"))
+con <- file("log.txt")
 sink(con, append=TRUE)
 
 x <- Sys.time()
 show(x)
 
-result <- autorun.jags("model.bugs", monitor = monitor, data = dataList, 
+result <- run.jags("model.bugs", monitor = monitor, data = dataList, 
                      summarise = TRUE, interactive = FALSE, 
-                     method = "parallel",adapt=60000,
+                     method = "parallel",adapt=50000,
                      jags.refresh = 60) #refresh: kuinka usein (sekunneissa) katsotaan, onko edistystä tullut
 
 show(Sys.time()-x)
 
 sink() 
-sink(type="message")
-
+close(con)
 
 #time.adapt <- system.time(jagsModel <- jags.model("model.bugs", data=dataList, n.chains = 1, n.adapt = 200000))
 #show(time.adapt)
@@ -81,4 +80,3 @@ sink(type="message")
 #saveRDS(post,"../phdmanuscript/monograph/data/dumps/hierarchical_dirichlecht_morph-ref-funct-clausestatus-subjtype-objtype.rds")
 
 
-close(con)
