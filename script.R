@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 
 library(rjags)
+library(jagsUI)
 library(runjags)
 library(coda)
 library(mcmcplots)
@@ -8,14 +9,14 @@ library(ggmcmc)
 source("functions.R")
 
 if(!exists("aineisto")){
-    aineisto <- readRDS("/home/juho_harme/phdmanuscript/monograph/data/dumps/vaihe1df.rds")
+    aineisto <- readRDS("../vaihe1df.rds")
 }
 
 
 #Muita mahdollisia muuttujia: funct, clausestatus 
 
-observations=xtabs(~ lang + morph + ref + funct + clausestatus + subjtype + objtype + location, data=aineisto)
-totals=xtabs(~ lang + morph + ref + funct + clausestatus + subjtype + objtype, data=aineisto)
+observations=xtabs(~ lang + morph + ref + funct + subjtype + location, data=aineisto)
+totals=xtabs(~ lang + morph + ref + funct + subjtype , data=aineisto)
 
 
 dataList  <-  list(observations=observations,
@@ -24,7 +25,6 @@ dataList  <-  list(observations=observations,
                    nMorph=length(unique(aineisto$morph)),
                    nRef=length(unique(aineisto$ref)),
                    nFunct=length(unique(aineisto$funct)),
-                   nClausestatus=length(unique(aineisto$clausestatus)),
                    Nlocations = 4)
 
 monitor <- c("b.funct","b.ref","morph","lang.morph","b.lang.ref","b.lang.funct","subjtype",
@@ -32,21 +32,23 @@ monitor <- c("b.funct","b.ref","morph","lang.morph","b.lang.ref","b.lang.funct",
              "std.subjtype", "std.lang.subjtype")
 
 
-con <- file("log.txt")
-sink(con, append=TRUE)
 
 x <- Sys.time()
 show(x)
 
 result <- run.jags("model.bugs", monitor = monitor, data = dataList, 
-                     summarise = TRUE, interactive = FALSE, 
+                     summarise = TRUE, 
                      method = "parallel",adapt=50000,
                      jags.refresh = 60) #refresh: kuinka usein (sekunneissa) katsotaan, onko edistystä tullut
 
-show(Sys.time()-x)
 
-sink() 
-close(con)
+#autojags.model <- autojags(data=dataList, parameters.to.save=monitor, model.file="model.bugs",
+#                            n.chains=2, n.adapt=50000, iter.increment=1000, n.burnin=500, n.thin=1,
+#                            save.all.iter=FALSE, parallel=TRUE,  DIC=FALSE,
+#                            store.data=FALSE, codaOnly=c("location","ref","funct","refb0","functb0","lang.raw"),
+#                            max.iter=100000, verbose=TRUE)
+#
+show(Sys.time()-x)
 
 #time.adapt <- system.time(jagsModel <- jags.model("model.bugs", data=dataList, n.chains = 1, n.adapt = 200000))
 #show(time.adapt)

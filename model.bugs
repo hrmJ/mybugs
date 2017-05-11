@@ -49,12 +49,6 @@ model{
                }
            }
 
-           for(clausestatus.idx in 1:nClausestatus){
-               clausestatus[clausestatus.idx, 1:Nlocations] ~ ddirich(alpha[])
-               for(lang.idx in 1:nLang){
-                   lang.clausestatus[lang.idx, clausestatus.idx, 1:Nlocations] ~ ddirich(alpha[])
-               }
-           }
 
        # BINÄÄRISET
        #------------------------------------------------------------------
