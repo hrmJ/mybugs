@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 
 library(rjags)
+library(runjags)
 library(coda)
 library(mcmcplots)
 library(ggmcmc)
@@ -31,10 +32,25 @@ monitor <- c("b.funct","b.ref","morph","lang.morph","b.lang.ref","b.lang.funct",
              "std.lang.clausestatus","std.lang.objtype","std.lang.subjtype")
 
 
+con <- file(paste("~/public_html/currentlog.txt"))
+sink(con, append=TRUE)
+
+x <- Sys.time()
+show(x)
+
+result <- autorun.jags("model.bugs", monitor = monitor, data = dataList, 
+                     summarise = TRUE, interactive = FALSE, 
+                     method = "parallel",adapt=60000,
+                     jags.refresh = 60) #refresh: kuinka usein (sekunneissa) katsotaan, onko edistystä tullut
+
+show(Sys.time()-x)
+
+sink() 
+sink(type="message")
 
 
-time.adapt <- system.time(jagsModel <- jags.model("model.bugs", data=dataList, n.chains = 1, n.adapt = 200000))
-show(time.adapt)
+#time.adapt <- system.time(jagsModel <- jags.model("model.bugs", data=dataList, n.chains = 1, n.adapt = 200000))
+#show(time.adapt)
 
 #time.update <- system.time(update(jagsModel, n.iter=2000))
 #show(time.update)
@@ -65,3 +81,4 @@ show(time.adapt)
 #saveRDS(post,"../phdmanuscript/monograph/data/dumps/hierarchical_dirichlecht_morph-ref-funct-clausestatus-subjtype-objtype.rds")
 
 
+close(con)
