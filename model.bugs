@@ -3,13 +3,13 @@ model{
        # LIKELIHOOD
        #==================================================================
 
-        for (i in 1:nLang){ for (j in 1:nMorph) { for (ref.idx in 1:nRef) { for (funct.idx in 1:nFunct) { for(clausestatus.idx in 1:nClausestatus) { for(subjtype.idx in 1:2) { for(objtype.idx in 1:2) {
-            observations[i,j,ref.idx,funct.idx,clausestatus.idx,subjtype.idx,objtype.idx,1:Nlocations] ~ dmulti( probs[i,j,ref.idx,funct.idx,clausestatus.idx,subjtype.idx,objtype.idx,1:Nlocations] , totals[i,j,ref.idx, funct.idx, clausestatus.idx, subjtype.idx,objtype.idx]  )
+        for (i in 1:nLang){ for (j in 1:nMorph) { for (ref.idx in 1:nRef) { for (funct.idx in 1:nFunct) { for(clausestatus.idx in 1:nClausestatus) { 
+            observations[i,j,ref.idx,funct.idx,clausestatus.idx,1:Nlocations] ~ dmulti( probs[i,j,ref.idx,funct.idx,clausestatus.idx,1:Nlocations] , totals[i,j,ref.idx, funct.idx, clausestatus.idx]  )
             for (k in 1:Nlocations) {                                         
-                probs[i,j,ref.idx,funct.idx,clausestatus.idx,subjtype.idx,objtype.idx,k]  <- phi[i,j,ref.idx,funct.idx,clausestatus.idx,subjtype.idx,objtype.idx, k] / sum(phi[i,j,ref.idx,funct.idx,clausestatus.idx,subjtype.idx,objtype.idx,1:Nlocations])
-                log(phi[i,j,ref.idx,funct.idx,clausestatus.idx,subjtype.idx,objtype.idx,k]) <- location[k] + lang[i,k]  +  morph[j,k]  + lang.morph[i,j,k] + b.ref[ref.idx,k] + b.lang.ref[i, ref.idx, k] +  b.funct[funct.idx,k] + b.lang.funct[i, funct.idx, k] + b.funct[funct.idx,k] + b.lang.clausestatus[i, clausestatus.idx, k] + subjtype[subjtype.idx, k] + lang.subjtype[i,subjtype.idx,k] + objtype[objtype.idx, k] + lang.objtype[i,objtype.idx,k]
+                probs[i,j,ref.idx,funct.idx,clausestatus.idx,k]  <- phi[i,j,ref.idx,funct.idx,clausestatus.idx, k] / sum(phi[i,j,ref.idx,funct.idx,clausestatus.idx,1:Nlocations])
+                log(phi[i,j,ref.idx,funct.idx,clausestatus.idx,k]) <- location[k] + lang[i,k]  +  morph[j,k]  + lang.morph[i,j,k] + b.ref[ref.idx,k] + b.lang.ref[i, ref.idx, k] +  b.funct[funct.idx,k] + b.lang.funct[i, funct.idx, k] + b.funct[funct.idx,k] + b.lang.clausestatus[i, clausestatus.idx, k] 
             }}
-         }}}}}}
+         }}}}
 
 
        # PRIORIT + interaktiot
@@ -19,7 +19,7 @@ model{
                alpha[k] <- 1
            }
 
-           location[1:4] ~ ddirich(alpha[])
+           location[1:Nlocations] ~ ddirich(alpha[])
 
            #------------------------------------------------------------
 
@@ -78,43 +78,6 @@ model{
            }
 
 
-           sigma.subjtype ~ dt(0,1,1) T(0,) #puoli-cauchy |-----------
-           tau.subjtype  <- pow(sigma.subjtype,-2)
-           sigma.lang.subjtype ~ dt(0,1,1) T(0,) #puoli-cauchy |-----------
-           tau.lang.subjtype  <- pow(sigma.lang.subjtype,-2)
-
-           for(k in 1:Nlocations){
-                   subjtype.raw[k] ~ dnorm(0, tau.subjtype)
-                   subjtype[1,k] <- subjtype.raw[k] - mean(subjtype.raw[])
-                   subjtype[2,k] <- -subjtype[1,k]
-
-                   #interaktio
-                   lang.subjtype.raw[k] ~  dnorm(0, tau.lang.subjtype)
-                   lang.subjtype[1,1,k] <- lang.subjtype.raw[k] - mean(lang.subjtype.raw[])
-                   lang.subjtype[1,2,k] <- -lang.subjtype[1,1,k]
-                   lang.subjtype[2,1,k] <- -lang.subjtype[1,1,k]
-                   lang.subjtype[2,2,k] <- lang.subjtype[1,1,k]
-           }
-
-
-           sigma.objtype ~ dt(0,1,1) T(0,) #puoli-cauchy |-----------
-           tau.objtype  <- pow(sigma.objtype,-2)
-           sigma.lang.objtype ~ dt(0,1,1) T(0,) #puoli-cauchy |-----------
-           tau.lang.objtype  <- pow(sigma.lang.objtype,-2)
-
-           for(k in 1:Nlocations){
-                   objtype.raw[k] ~ dnorm(0, tau.objtype)
-                   objtype[1,k] <- objtype.raw[k] - mean(objtype.raw[])
-                   objtype[2,k] <- -objtype[1,k]
-
-                   #interaktio
-                   lang.objtype.raw[k] ~  dnorm(0, tau.lang.objtype)
-                   lang.objtype[1,1,k] <- lang.objtype.raw[k] - mean(lang.objtype.raw[])
-                   lang.objtype[1,2,k] <- -lang.objtype[1,1,k]
-                   lang.objtype[2,1,k] <- -lang.objtype[1,1,k]
-                   lang.objtype[2,2,k] <- lang.objtype[1,1,k]
-           }
-
 
     # SD --------------------------------------------------------------------------------
            std.lang <- sd(lang[,])
@@ -122,15 +85,11 @@ model{
            std.funct <- sd(b.funct[,])
            std.ref <- sd(b.ref[,])
            std.clausestatus <- sd(b.clausestatus[,])
-           std.subjtype <- sd(subjtype[,])
-           std.objtype <- sd(objtype[,])
 
            std.lang.morph <- sd(lang.morph[,,])
            std.lang.ref <- sd(b.lang.ref[,,])
            std.lang.funct <- sd(b.lang.funct[,,])
            std.lang.clausestatus <- sd(b.lang.clausestatus[,,])
-           std.lang.objtype <- sd(lang.objtype[,,])
-           std.lang.subjtype <- sd(lang.subjtype[,,])
 
            
 #           for (k in 1:Nlocations) {                                         #y. LOCATIONS
@@ -191,4 +150,5 @@ model{
 
        }
 }
+
 
