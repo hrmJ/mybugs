@@ -3,11 +3,11 @@ model{
        # LIKELIHOOD
        #==================================================================
 
-        for (i in 1:nLang){ for (j in 1:nMorph) { for (ref.idx in 1:nRef) { for (funct.idx in 1:nFunct) { for(clausestatus.idx in 1:nClausestatus) { 
-            observations[i,j,ref.idx,funct.idx,clausestatus.idx,1:Nlocations] ~ dmulti( probs[i,j,ref.idx,funct.idx,clausestatus.idx,1:Nlocations] , totals[i,j,ref.idx, funct.idx, clausestatus.idx]  )
+        for (i in 1:nLang){ for (j in 1:nMorph) { for (morph.idx in 1:nMorph) { for (funct.idx in 1:nFunct) { for(clausestatus.idx in 1:nClausestatus) { 
+            observations[i,j,morph.idx,funct.idx,clausestatus.idx,1:Nlocations] ~ dmulti( probs[i,j,morph.idx,funct.idx,clausestatus.idx,1:Nlocations] , totals[i,j,morph.idx, funct.idx, clausestatus.idx]  )
             for (k in 1:Nlocations) {                                         
-                probs[i,j,ref.idx,funct.idx,clausestatus.idx,k]  <- phi[i,j,ref.idx,funct.idx,clausestatus.idx, k] / sum(phi[i,j,ref.idx,funct.idx,clausestatus.idx,1:Nlocations])
-                log(phi[i,j,ref.idx,funct.idx,clausestatus.idx,k]) <- location[k] + lang[i,k]  +  morph[j,k]  + lang.morph[i,j,k] + b.ref[ref.idx,k] + b.lang.ref[i, ref.idx, k] +  b.funct[funct.idx,k] + b.lang.funct[i, funct.idx, k] + b.funct[funct.idx,k] + b.lang.clausestatus[i, clausestatus.idx, k] 
+                probs[i,j,morph.idx,funct.idx,clausestatus.idx,k]  <- phi[i,j,morph.idx,funct.idx,clausestatus.idx, k] / sum(phi[i,j,morph.idx,funct.idx,clausestatus.idx,1:Nlocations])
+                log(phi[i,j,morph.idx,funct.idx,clausestatus.idx,k]) <- location[k] + lang[i,k]  +  pos[j,k]  + lang.pos[i,j,k] + b.morph[morph.idx,k] + b.lang.morph[i, morph.idx, k] +  b.funct[funct.idx,k] + b.lang.funct[i, funct.idx, k] + b.funct[funct.idx,k] + b.lang.clausestatus[i, clausestatus.idx, k] 
             }}
          }}}}
 
@@ -34,10 +34,10 @@ model{
 
            #------------------------------------------------------------
 
-           for(ref.idx in 1:nRef){
-               ref[ref.idx, 1:Nlocations] ~ ddirich(alpha[])
+           for(morph.idx in 1:nMorph){
+               morph[morph.idx, 1:Nlocations] ~ ddirich(alpha[])
                for(lang.idx in 1:nLang){
-                   lang.ref[lang.idx, ref.idx, 1:Nlocations] ~ ddirich(alpha[])
+                   lang.morph[lang.idx, morph.idx, 1:Nlocations] ~ ddirich(alpha[])
                }
            }
 
@@ -59,41 +59,41 @@ model{
        # BINÄÄRISET
        #------------------------------------------------------------------
 
-           sigma.morph ~ dt(0,1,1) T(0,) #puoli-cauchy |-----------
-           tau.morph  <- pow(sigma.morph,-2)
-           sigma.lang.morph ~ dt(0,1,1) T(0,) #puoli-cauchy |-----------
-           tau.lang.morph  <- pow(sigma.lang.morph,-2)
+           sigma.pos ~ dt(0,1,1) T(0,) #puoli-cauchy |-----------
+           tau.pos  <- pow(sigma.pos,-2)
+           sigma.lang.pos ~ dt(0,1,1) T(0,) #puoli-cauchy |-----------
+           tau.lang.pos  <- pow(sigma.lang.pos,-2)
 
            for(k in 1:Nlocations){
-                   morph.raw[k] ~ dnorm(0, tau.morph)
-                   morph[1,k] <- morph.raw[k] - mean(morph.raw[])
-                   morph[2,k] <- -morph[1,k]
+                   pos.raw[k] ~ dnorm(0, tau.pos)
+                   pos[1,k] <- pos.raw[k] - mean(pos.raw[])
+                   pos[2,k] <- -pos[1,k]
 
                    #interaktio
-                   lang.morph.raw[k] ~  dnorm(0, tau.lang.morph)
-                   lang.morph[1,1,k] <- lang.morph.raw[k] - mean(lang.morph.raw[])
-                   lang.morph[1,2,k] <- -lang.morph[1,1,k]
-                   lang.morph[2,1,k] <- -lang.morph[1,1,k]
-                   lang.morph[2,2,k] <- lang.morph[1,1,k]
+                   lang.pos.raw[k] ~  dnorm(0, tau.lang.pos)
+                   lang.pos[1,1,k] <- lang.pos.raw[k] - mean(lang.pos.raw[])
+                   lang.pos[1,2,k] <- -lang.pos[1,1,k]
+                   lang.pos[2,1,k] <- -lang.pos[1,1,k]
+                   lang.pos[2,2,k] <- lang.pos[1,1,k]
            }
 
 
 
     # SD --------------------------------------------------------------------------------
            std.lang <- sd(lang[,])
-           std.morph <- sd(morph[,])
+           std.pos <- sd(pos[,])
            std.funct <- sd(b.funct[,])
-           std.ref <- sd(b.ref[,])
+           std.morph <- sd(b.morph[,])
            std.clausestatus <- sd(b.clausestatus[,])
 
-           std.lang.morph <- sd(lang.morph[,,])
-           std.lang.ref <- sd(b.lang.ref[,,])
+           std.lang.pos <- sd(lang.pos[,,])
+           std.lang.morph <- sd(b.lang.morph[,,])
            std.lang.funct <- sd(b.lang.funct[,,])
            std.lang.clausestatus <- sd(b.lang.clausestatus[,,])
 
            
 #           for (k in 1:Nlocations) {                                         #y. LOCATIONS
-#              gt0[k] <- step(lang.morph[1,1,k])
+#              gt0[k] <- step(lang.pos[1,1,k])
 #           }
 
 
@@ -101,14 +101,9 @@ model{
 #SUM-TO-ZERO ------------------------------------------------------------
 
        for(loc.idx in 1:Nlocations){
-           #BASELINE = location[loc.idx]
-           #for (lang.idx in 1:nLang) { for(morph.idx in 1:nMorph){ for (ref.idx in 1:nRef){ for(funct.idx in 1:nFunct){
-           #    m[lang.idx,morph.idx,ref.idx,funct.idx,clausestatus.idx,loc.idx]  <- location[loc.idx] + lang[lang.idx,loc.idx]  +  morph[morph.idx,loc.idx]  +   ref[ref.idx,loc.idx]+ lang.funct[lang.idx,funct.idx,loc.idx] + lang.ref[lang.idx,ref.idx,loc.idx] + lang.morph[lang.idx,morph.idx,loc.idx] + funct[funct.idx, loc.idx] + clausestatus[clausestatus.idx, loc.idx] + lang.clausestatus[lang.idx, clausestatus.idx, loc.idx]
-           # }}}}
-
            #Voiko näin tehdä?? >>
-           for (lang.idx in 1:nLang) { for (ref.idx in 1:nRef){
-               mref[lang.idx,ref.idx,loc.idx]  <- location[loc.idx] + lang[lang.idx, loc.idx]  +  ref[ref.idx, loc.idx] + lang.ref[lang.idx,ref.idx,loc.idx]
+           for (lang.idx in 1:nLang) { for (morph.idx in 1:nMorph){
+               mmorph[lang.idx,morph.idx,loc.idx]  <- location[loc.idx] + lang[lang.idx, loc.idx]  +  morph[morph.idx, loc.idx] + lang.morph[lang.idx,morph.idx,loc.idx]
             }}
 
            for (lang.idx in 1:nLang) { for (funct.idx in 1:nFunct){
@@ -120,17 +115,15 @@ model{
             }}
 
 
-           #b0[loc.idx] <- mean(m[1:nLang,1:nMorph,1:nRef,1:nFunct, loc.idx])
-
            #Pitääkö erikseen mys 
-           refb0[loc.idx] <- mean(mref[1:nLang,1:nRef,loc.idx])
+           morphb0[loc.idx] <- mean(mmorph[1:nLang,1:nMorph,loc.idx])
            functb0[loc.idx] <- mean(mfunct[1:nLang,1:nFunct,loc.idx])
            clausestatusb0[loc.idx] <- mean(mclausestatus[1:nLang,1:nClausestatus,loc.idx])
 
-           for(ref.idx in 1:nRef){
-               b.ref[ref.idx, loc.idx] <- mean(mref[1:nLang,ref.idx,loc.idx]) - refb0[loc.idx]
+           for(morph.idx in 1:nMorph){
+               b.morph[morph.idx, loc.idx] <- mean(mmorph[1:nLang,morph.idx,loc.idx]) - morphb0[loc.idx]
                for(lang.idx in 1:nLang){
-                   b.lang.ref[lang.idx, ref.idx, loc.idx] <- mref[lang.idx, ref.idx, loc.idx] - (refb0[loc.idx] + lang[lang.idx, loc.idx] + b.ref[ref.idx, loc.idx])
+                   b.lang.morph[lang.idx, morph.idx, loc.idx] <- mmorph[lang.idx, morph.idx, loc.idx] - (morphb0[loc.idx] + lang[lang.idx, loc.idx] + b.morph[morph.idx, loc.idx])
                }
            }
 
