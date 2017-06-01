@@ -21,6 +21,8 @@ observations=xtabs(~ lang + pos + morph +  funct + clausestatus + location, data
 totals=xtabs(~ lang + pos + morph +  funct + clausestatus, data=aineisto)
 
 
+dataList  <-  list(observations=observations,
+                   totals=totals,
                    nLang=length(unique(aineisto$lang)),
                    nMorph=length(unique(aineisto$morph)),
                    nPos=length(unique(aineisto$pos)),
@@ -35,10 +37,9 @@ monitor <- c("lang",     "b.morph",        "pos",           "b.funct",         "
 
 
 
-#con <- file("~/public_html/currentlog.txt")
-#sink(con, append=TRUE)
-#x <- Sys.time()
-#show(x)
+con <- file("~/public_html/currentlog.txt")
+sink(con, append=TRUE)
+show(Sys.time())
 
 RunJagsModel <- run.jags(data=dataList, monitor=monitor, model="model.bugs",
                             n.chains=2, adapt=40000, burnin=10000, thin=10,
@@ -48,10 +49,8 @@ saveRDS(RunJagsModel,"withpos_100k.rds")
 saveRDS(RunJagsModel,"~/phdmanuscript/monograph/data/dumps/withpos_100k.rds")
 print("SAVED.")
 
-
-#sink() 
-
-#close(con)
+sink() 
+close(con)
 
 
 post <- as.mcmc.list(RunJagsModel)
