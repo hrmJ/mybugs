@@ -47,6 +47,6 @@ GetLabelNamesForGgMcmc <- function(VarName, VarValues){
 }
 
 
-intercepts <- GetLabelNamesForGgMcmc("b.lang.ref",list(levels(aineisto$lang),levels(aineisto$ref),levels(aineisto$morph), levels(aineisto$loc)))
+#intercepts <- GetLabelNamesForGgMcmc("b.lang.ref",list(levels(aineisto$lang),levels(aineisto$ref),levels(aineisto$morph), levels(aineisto$loc)))
 
 

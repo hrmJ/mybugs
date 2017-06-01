@@ -3,11 +3,11 @@ model{
        # LIKELIHOOD
        #==================================================================
 
-        for (i in 1:nLang){ for (j in 1:nMorph) { for (morph.idx in 1:nMorph) { for (funct.idx in 1:nFunct) { for(clausestatus.idx in 1:nClausestatus) { 
-            observations[i,j,morph.idx,funct.idx,clausestatus.idx,1:Nlocations] ~ dmulti( probs[i,j,morph.idx,funct.idx,clausestatus.idx,1:Nlocations] , totals[i,j,morph.idx, funct.idx, clausestatus.idx]  )
-            for (k in 1:Nlocations) {                                         
-                probs[i,j,morph.idx,funct.idx,clausestatus.idx,k]  <- phi[i,j,morph.idx,funct.idx,clausestatus.idx, k] / sum(phi[i,j,morph.idx,funct.idx,clausestatus.idx,1:Nlocations])
-                log(phi[i,j,morph.idx,funct.idx,clausestatus.idx,k]) <- location[k] + lang[i,k]  +  pos[j,k]  + lang.pos[i,j,k] + b.morph[morph.idx,k] + b.lang.morph[i, morph.idx, k] +  b.funct[funct.idx,k] + b.lang.funct[i, funct.idx, k] + b.funct[funct.idx,k] + b.lang.clausestatus[i, clausestatus.idx, k] 
+        for (lang.idx in 1:nLang){ for (pos.idx in 1:nPos) { for (morph.idx in 1:nMorph) { for (funct.idx in 1:nFunct) { for(clausestatus.idx in 1:nClausestatus) { 
+            observations[lang.idx,pos.idx,morph.idx,funct.idx,clausestatus.idx,1:Nlocations] ~ dmulti( probs[lang.idx,pos.idx,morph.idx,funct.idx,clausestatus.idx,1:Nlocations] , totals[lang.idx,pos.idx,morph.idx, funct.idx, clausestatus.idx]  )
+            for (loc.idx in 1:Nlocations) {                                         
+                probs[lang.idx,pos.idx,morph.idx,funct.idx,clausestatus.idx,loc.idx]  <- phi[lang.idx,pos.idx,morph.idx,funct.idx,clausestatus.idx, loc.idx] / sum(phi[lang.idx,pos.idx,morph.idx,funct.idx,clausestatus.idx,1:Nlocations])
+                log(phi[lang.idx,pos.idx,morph.idx,funct.idx,clausestatus.idx,loc.idx]) <- location[loc.idx] + lang[lang.idx,loc.idx]  +  pos[pos.idx,loc.idx]  + lang.pos[lang.idx,pos.idx,loc.idx] + b.morph[morph.idx,loc.idx] + b.lang.morph[lang.idx, morph.idx, loc.idx] +  b.funct[funct.idx,loc.idx] + b.lang.funct[lang.idx, funct.idx, loc.idx] + b.funct[funct.idx,loc.idx] + b.lang.clausestatus[lang.idx, clausestatus.idx, loc.idx] 
             }}
          }}}}
 
