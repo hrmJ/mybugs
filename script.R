@@ -1,15 +1,15 @@
 #!/usr/bin/env Rscript
 
 library(rjags)
-library(jagsUI)
+#library(jagsUI)
 library(runjags)
 library(coda)
 library(mcmcplots)
-library(ggmcmc)
+#library(ggmcmc)
 source("functions.R")
 
 if(!exists("aineisto")){
-    aineisto <- readRDS("../vaihe1df.rds")
+    aineisto <- readRDS("vaihe1df.rds")
 }
 
 
@@ -29,6 +29,7 @@ dataList  <-  list(observations=observations,
 
 monitor <- c("b.funct","b.ref","morph","lang.morph","b.lang.ref","b.lang.funct","subjtype",
              "std.lang"," std.morph"," std.funct"," std.ref"," std.lang.morph"," std.lang.ref"," std.lang.funct",
+             "lang.subjtype",
              "std.subjtype", "std.lang.subjtype")
 
 
@@ -36,10 +37,12 @@ monitor <- c("b.funct","b.ref","morph","lang.morph","b.lang.ref","b.lang.funct",
 x <- Sys.time()
 show(x)
 
-result <- run.jags("model.bugs", monitor = monitor, data = dataList, 
-                     summarise = TRUE, 
-                     method = "parallel",adapt=50000,
-                     jags.refresh = 60) #refresh: kuinka usein (sekunneissa) katsotaan, onko edistystä tullut
+con <- file(paste("c:Users/jh89963.STAFF/Dropbox/currentlog.txt"))
+sink(con, append=TRUE)
+
+jagsModel <- jags.model("model.bugs", data=dataList, n.chains = 1, n.adapt = 40000)
+
+show(time.adapt)
 
 
 #autojags.model <- autojags(data=dataList, parameters.to.save=monitor, model.file="model.bugs",
@@ -49,13 +52,20 @@ result <- run.jags("model.bugs", monitor = monitor, data = dataList,
 #                            max.iter=100000, verbose=TRUE)
 #
 show(Sys.time()-x)
+sink()
+close(con)
+#saveRDS(,"c:Users/jh89963.STAFF/Dropbox/result.rds")
+
+saveRDS(jagsModel,"adapted_40000_noclausestatus.rds")
+saveRDS(post,"1000samples_from_40000_noclausestatus.rds")
+
+post <- coda.samples(jagsModel, variable.names=monitor, n.iter=100000, thin=1)
 
 #time.adapt <- system.time(jagsModel <- jags.model("model.bugs", data=dataList, n.chains = 1, n.adapt = 200000))
 #show(time.adapt)
 
-#time.update <- system.time(update(jagsModel, n.iter=2000))
-#show(time.update)
-#time.sample <- system.time(post <- coda.samples(jagsModel, variable.names=monitor, n.iter=20000, thin=1))
+#update(jagsModel, n.iter=1000)
+
 #
 #sum.saved <- summary(post)$statistics
 #show(sum.saved)
@@ -67,7 +77,6 @@ show(Sys.time()-x)
 
 #intercepts <- GetLabelNamesForGgMcmc("b.lang.ref",list(levels(aineisto$lang),levels(aineisto$ref), levels(aineisto$loc)))
 #intercepts <- GetLabelNamesForGgMcmc("lang.morph",list(levels(aineisto$lang),levels(aineisto$morph), levels(aineisto$loc)))
-#intercepts <- GetLabelNamesForGgMcmc("funct",list(levels(aineisto$funct), levels(aineisto$loc)))
 #intercepts$lang <- "fi"
 #intercepts$lang[grepl("ru,",intercepts$Label)] <- "ru"
 #intercepts$loc <- "S1"
@@ -76,8 +85,16 @@ show(Sys.time()-x)
 #intercepts$loc[grepl("S4",intercepts$Label)] <- "S4"
 
 #
+
+intercepts <- GetLabelNamesForGgMcmc("lang.subjtype",list(levels(aineisto$lang), levels(aineisto$subjtype), levels(aineisto$loc)))
+p<-ggs(post, family="^lang.subjtype", par_labels=intercepts)
+
+subjtype.names <- GetLabelNamesForGgMcmc("subjtype",list(levels(aineisto$subjtype), levels(aineisto$loc)))
+p.subjtype<-ggs(post, family="^subjtype", par_labels=subjtype.names)
+ggs_caterpillar(p, family="fi") 
+ggs_caterpillar(p.subjtype) 
+
 #ggs_caterpillar(ggs(post, par_labels=intercepts),family="ADV") + aes(color=lang) + facet_wrap(~ loc)
-#ggs_caterpillar(ggs(post, par_labels=intercepts)) 
 
 #saveRDS(post,"../phdmanuscript/monograph/data/dumps/hierarchical_dirichlecht_morph-ref-funct-clausestatus-subjtype-objtype.rds")
 
