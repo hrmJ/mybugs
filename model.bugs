@@ -3,13 +3,13 @@ model{
        # LIKELIHOOD
        #==================================================================
 
-        for (lang.idx in 1:nLang){ for (pos.idx in 1:nPos) { for (morph.idx in 1:nMorph) { for (funct.idx in 1:nFunct) { for(clausestatus.idx in 1:nClausestatus) { 
-            observations[lang.idx,pos.idx,morph.idx,funct.idx,clausestatus.idx,1:Nlocations] ~ dmulti( probs[lang.idx,pos.idx,morph.idx,funct.idx,clausestatus.idx,1:Nlocations] , totals[lang.idx,pos.idx,morph.idx, funct.idx, clausestatus.idx]  )
+        for (lang.idx in 1:nLang){ for (pos.idx in 1:nPos) {for (corpus.idx in 1:nCorpus) { for (morph.idx in 1:nMorph) { for (funct.idx in 1:nFunct) { for(clausestatus.idx in 1:nClausestatus) { 
+            observations[lang.idx,pos.idx,corpus.idx, morph.idx,funct.idx,clausestatus.idx,1:Nlocations] ~ dmulti( probs[lang.idx,pos.idx,corpus.idx,morph.idx,funct.idx,clausestatus.idx,1:Nlocations] , totals[lang.idx,pos.idx,corpus.idx,morph.idx, funct.idx, clausestatus.idx]  )
             for (loc.idx in 1:Nlocations) {                                         
-                probs[lang.idx,pos.idx,morph.idx,funct.idx,clausestatus.idx,loc.idx]  <- phi[lang.idx,pos.idx,morph.idx,funct.idx,clausestatus.idx, loc.idx] / sum(phi[lang.idx,pos.idx,morph.idx,funct.idx,clausestatus.idx,1:Nlocations])
-                log(phi[lang.idx,pos.idx,morph.idx,funct.idx,clausestatus.idx,loc.idx]) <- location[loc.idx] + lang[lang.idx,loc.idx]  +  pos[pos.idx,loc.idx]  + lang.pos[lang.idx,pos.idx,loc.idx] + b.morph[morph.idx,loc.idx] + b.lang.morph[lang.idx, morph.idx, loc.idx] +  b.funct[funct.idx,loc.idx] + b.lang.funct[lang.idx, funct.idx, loc.idx] + b.funct[funct.idx,loc.idx] + b.lang.clausestatus[lang.idx, clausestatus.idx, loc.idx] 
+                probs[lang.idx,pos.idx,corpus.idx,morph.idx,funct.idx,clausestatus.idx,loc.idx]  <- phi[lang.idx,pos.idx,corpus.idx,morph.idx,funct.idx,clausestatus.idx, loc.idx] / sum(phi[lang.idx,pos.idx,corpus.idx,morph.idx,funct.idx,clausestatus.idx,1:Nlocations])
+                log(phi[lang.idx,pos.idx,corpus.idx,morph.idx,funct.idx,clausestatus.idx,loc.idx]) <- location[loc.idx] + lang[lang.idx,loc.idx]  +  pos[pos.idx,loc.idx]   + lang.pos[lang.idx,pos.idx,loc.idx] + corpus[corpus.idx,loc.idx] + lang.corpus[lang.idx,corpus.idx,loc.idx]  +  b.morph[morph.idx,loc.idx] + b.lang.morph[lang.idx, morph.idx, loc.idx] +  b.funct[funct.idx,loc.idx] + b.lang.funct[lang.idx, funct.idx, loc.idx] + b.funct[funct.idx,loc.idx] + b.lang.clausestatus[lang.idx, clausestatus.idx, loc.idx] 
             }}
-         }}}}
+         }}}}}
 
 
        # PRIORIT + interaktiot
@@ -78,15 +78,35 @@ model{
            }
 
 
+           sigma.corpus ~ dt(0,1,1) T(0,) #puoli-cauchy |-----------
+           tau.corpus  <- pow(sigma.corpus,-2)
+           sigma.lang.corpus ~ dt(0,1,1) T(0,) #puoli-cauchy |-----------
+           tau.lang.corpus  <- pow(sigma.lang.corpus,-2)
+
+           for(k in 1:Nlocations){
+                   corpus.raw[k] ~ dnorm(0, tau.corpus)
+                   corpus[1,k] <- corpus.raw[k] - mean(corpus.raw[])
+                   corpus[2,k] <- -corpus[1,k]
+
+                   #interaktio
+                   lang.corpus.raw[k] ~  dnorm(0, tau.lang.corpus)
+                   lang.corpus[1,1,k] <- lang.corpus.raw[k] - mean(lang.corpus.raw[])
+                   lang.corpus[1,2,k] <- -lang.corpus[1,1,k]
+                   lang.corpus[2,1,k] <- -lang.corpus[1,1,k]
+                   lang.corpus[2,2,k] <- lang.corpus[1,1,k]
+           }
+
 
     # SD --------------------------------------------------------------------------------
            std.lang <- sd(lang[,])
            std.pos <- sd(pos[,])
+           std.corpus <- sd(corpus[,])
            std.funct <- sd(b.funct[,])
            std.morph <- sd(b.morph[,])
            std.clausestatus <- sd(b.clausestatus[,])
 
            std.lang.pos <- sd(lang.pos[,,])
+           std.lang.corpus <- sd(lang.corpus[,,])
            std.lang.morph <- sd(b.lang.morph[,,])
            std.lang.funct <- sd(b.lang.funct[,,])
            std.lang.clausestatus <- sd(b.lang.clausestatus[,,])
